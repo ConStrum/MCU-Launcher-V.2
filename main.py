@@ -1,9 +1,11 @@
 import pywinstyles
 
 from gui import MainRunWindow, ErrorWindow, FirstRunWindow
-from imp_functions import CreateMBox
-from config import program_path, mcu_appdata, mc_folder, fully_installed_file
-from threads import MCU_Install_Thread_init, Background_Audio_Thread_init, freeze_support
+from imp_functions import CreateMBox, retrieve_config_argument_to_file, add_config_argument_to_file
+from default_config import program_path, mcu_appdata, mc_folder, fully_installed_file, \
+    sound_activated_after_launcher_start, custom_config_file
+from threads import MCU_Install_Thread_init, Background_Audio_Thread
+from multiprocessing import freeze_support
 
 import sys
 import os
@@ -27,7 +29,7 @@ EW_class = None
 class NoOSSupport(Exception):
     pass
 
-if sys.argv[0] == "--dev":
+if not sys.argv[1] == "--dev":
     def error_handler(exc_type, exc_value, exc_traceback):
         global EW_class
         error_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
@@ -67,9 +69,14 @@ if __name__ == "__main__":
     if os.path.isfile(fully_installed_file):
         pass
     else:
-        Background_Audio_Thread_init()
+
+        #Background_Audio_Thread().__init__()
+
         MRW_class = MainRunWindow()
+
         pywinstyles.change_header_color(MRW_class, "#141E28")
         MRW_class.StartMainWindow()
+
+
 
         #launcher_firt_time_run()

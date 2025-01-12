@@ -1,6 +1,8 @@
-import os
+
 from os import path
 from pathlib import Path
+
+
 
 CURRENT_APP_VERSION = "Alpha-0.1"
 APP_TITLE = 'MCU Launcher'
@@ -13,6 +15,12 @@ M_WINDOW_SIZE_X = int(M_WINDOW_SIZE[:4])
 M_WINDOW_SIZE_Y = int(M_WINDOW_SIZE[5:])
 
 
+
+MICROSOFT_CLIENT_ID = "d3a19c4d-0b0f-4fe6-a0ec-c7588945d96a"
+MICROSOFT_REDIRECT_URI = "https://login.microsoftonline.com/common/oauth2/nativeclient"
+
+
+
 FIRST_WINDOW_SIZE = "250x350"
 FIRST_WINDOW_SIZE_X = int(FIRST_WINDOW_SIZE[:3])
 FIRST_WINDOW_SIZE_Y = int(FIRST_WINDOW_SIZE[4:])
@@ -23,6 +31,8 @@ program_path = path.dirname(path.realpath(__file__))
 user_folder = str(Path.home())
 mcu_appdata = user_folder + "\\AppData\\Local\\MCULauncher2"
 fully_installed_file = mcu_appdata + "\\fully_installed.txt"
+
+custom_config_file = mcu_appdata + "\\custom_config.ini"
 
 
 
@@ -46,6 +56,7 @@ error_info_text_box = "Ein schwerwiegender Fehler ist aufgetreten, der leider ni
 
 mc_folder = mcu_appdata + "\\.minecraft"
 mc_custom_temp_folder = mcu_appdata + "\\TEMP"
+mc_user_folder = mcu_appdata + "\\mc_user"
 
 current_mc_version_string = "1.21.1"
 
@@ -60,8 +71,13 @@ neoforge_installer_var = mc_custom_temp_folder + "\\neoforge.jar"
 mods_downloaded_var = mc_custom_temp_folder + "\\mcu.zip"
 mods_extr_folder_var = mc_custom_temp_folder + "\\mcupackage-main"
 
+sound_activated_after_launcher_start = True
+
+
 
 folder_in_mcu_download_zip = "mcupackage-main"
+
+
 
 
 

@@ -1,7 +1,7 @@
 from zipfile import ZipFile
 import tempfile
 import requests
-from config import neoforge_installer_download_url, mc_folder, mods_download_url
+from default_config import neoforge_installer_download_url, mc_folder, mods_download_url
 import shutil
 import os
 
