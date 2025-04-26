@@ -103,91 +103,97 @@ def play_background_audio(play_audio_flag: bool = False):
 
 redirected_url = None
 
-def do_microsoft_login(top_level_class):
+def do_microsoft_login(top_level_class, login_complete: bool):
     global redirected_url
-    print("Doing Microsoft Login...")
 
-    login_url, gen_state, code_verifier = mll.microsoft_account.get_secure_login_data(MICROSOFT_CLIENT_ID, MICROSOFT_REDIRECT_URI)
+    if login_complete:
+        shutil.rmtree(mc_user_folder)
+        
+
+    if not login_complete:
+        print("Doing Microsoft Login...")
+
+        login_url, gen_state, code_verifier = mll.microsoft_account.get_secure_login_data(MICROSOFT_CLIENT_ID, MICROSOFT_REDIRECT_URI)
 
 
 
 
-    login_window = webview.create_window("Microsoft Login", login_url)
-    def login_window_on_change():
+        login_window = webview.create_window("Microsoft Login", login_url)
+        def login_window_on_change():
+            try:
+                global redirected_url
+                print(login_window.get_current_url())
+                while True:
+                    time.sleep(0.2)
+                    if "nativeclient?code" in login_window.get_current_url():
+                        redirected_url = login_window.get_current_url()
+                        login_window.destroy()
+                        break
+            except Exception:
+                pass
+
+        webview.start(func=login_window_on_change)
+
         try:
-            global redirected_url
-            print(login_window.get_current_url())
-            while True:
-                time.sleep(0.2)
-                if "nativeclient?code" in login_window.get_current_url():
-                    redirected_url = login_window.get_current_url()
-                    login_window.destroy()
-                    break
-        except Exception:
-            pass
+            auth_code = mll.microsoft_account.parse_auth_code_url(redirected_url, gen_state)
+        except AssertionError:
+            print("States do not match.")
+            raise Exception("States do not match.")
+        except KeyError:
+            print("Url not valid.")
+            raise Exception("Url not valid.")
 
-    webview.start(func=login_window_on_change)
+        mc_login_data = mll.microsoft_account.complete_login(MICROSOFT_CLIENT_ID, None, MICROSOFT_REDIRECT_URI, auth_code, code_verifier)
 
-    try:
-        auth_code = mll.microsoft_account.parse_auth_code_url(redirected_url, gen_state)
-    except AssertionError:
-        print("States do not match.")
-        raise Exception("States do not match.")
-    except KeyError:
-        print("Url not valid.")
-        raise Exception("Url not valid.")
+        with open(mc_user_folder + "\\mc_login_data.json", "w") as f:
+            json.dump(mc_login_data, f, indent=4)
+            f.close()
 
-    mc_login_data = mll.microsoft_account.complete_login(MICROSOFT_CLIENT_ID, None, MICROSOFT_REDIRECT_URI, auth_code, code_verifier)
+        with open (mc_user_folder + "\\access_token.dat", "w") as f:
+            f.write(mc_login_data["access_token"])
+            f.close()
 
-    with open(mc_user_folder + "\\mc_login_data.json", "w") as f:
-        json.dump(mc_login_data, f, indent=4)
-        f.close()
+        with open (mc_user_folder + "\\refresh_token.dat", "w") as f:
+            f.write(mc_login_data["refresh_token"])
+            f.close()
 
-    with open (mc_user_folder + "\\access_token.dat", "w") as f:
-        f.write(mc_login_data["access_token"])
-        f.close()
+        mc_skin_url = mc_login_data["skins"][0]["url"]
 
-    with open (mc_user_folder + "\\refresh_token.dat", "w") as f:
-        f.write(mc_login_data["refresh_token"])
-        f.close()
+        skin_file_response = requests.get(mc_skin_url)
 
-    mc_skin_url = mc_login_data["skins"][0]["url"]
-
-    skin_file_response = requests.get(mc_skin_url)
-
-    with open(mc_user_folder + "\\skinfile.png", "wb") as f:
-        f.write(skin_file_response.content)
-        f.close()
+        with open(mc_user_folder + "\\skinfile.png", "wb") as f:
+            f.write(skin_file_response.content)
+            f.close()
 
 
-    skin_file_pil = Image.open(mc_user_folder + "\\skinfile.png").convert('RGBA')
-    face_box = (8, 8, 16, 16)
-    overlay_box = (40, 8, 48, 16)
-    face_pil = skin_file_pil.crop(face_box)
+        skin_file_pil = Image.open(mc_user_folder + "\\skinfile.png").convert('RGBA')
+        face_box = (8, 8, 16, 16)
+        overlay_box = (40, 8, 48, 16)
+        face_pil = skin_file_pil.crop(face_box)
 
 
-    overlay_pil = skin_file_pil.crop(overlay_box)
+        overlay_pil = skin_file_pil.crop(overlay_box)
 
-    face_pil.paste(overlay_pil, (0, 0), overlay_pil)
+        face_pil.paste(overlay_pil, (0, 0), overlay_pil)
 
-    scaled_face = face_pil.resize(
-        (face_pil.width * 8, face_pil.height * 8),
-        Image.NEAREST
-    )
+        scaled_face = face_pil.resize(
+            (face_pil.width * 8, face_pil.height * 8),
+            Image.NEAREST
+        )
 
-    scaled_face.save(mc_user_folder + "\\player_head.png")
-    scaled_face.save(mc_user_folder + "\\player_head.ico", format="ICO")
+        scaled_face.save(mc_user_folder + "\\player_head.png")
+        scaled_face.save(mc_user_folder + "\\player_head.ico", format="ICO")
 
-    top_level_class.iconbitmap(mc_user_folder + "\\player_head.ico")
+        top_level_class.iconbitmap(mc_user_folder + "\\player_head.ico")
 
-    uuid_mc = mc_login_data["id"]
+        uuid_mc = mc_login_data["id"]
 
-    skin_render_3d_url = f"https://crafatar.com/renders/body/{uuid_mc}?overlay=true&default=MHF_Steve"
+        skin_render_3d_url = f"https://crafatar.com/renders/body/{uuid_mc}?overlay=true&default=MHF_Steve"
 
-    skin_render_3d_response = requests.get(skin_render_3d_url)
-    with open(mc_user_folder + "\\skin_render_3d.png", "wb") as f:
-        f.write(skin_render_3d_response.content)
-        f.close()
+        skin_render_3d_response = requests.get(skin_render_3d_url)
+        with open(mc_user_folder + "\\skin_render_3d.png", "wb") as f:
+            f.write(skin_render_3d_response.content)
+            f.close()
 
 
 

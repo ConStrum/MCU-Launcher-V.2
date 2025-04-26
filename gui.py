@@ -98,7 +98,11 @@ class TopLevelAccountWindow(ctk.CTkToplevel):
         self.background_image_label.pack()
 
         if not path.isfile(mc_user_folder + "\\login_true.txt"):
-            self.mc_login_button = ctk.CTkButton(self, width=150, height=45, text="Login", font=self.custom_font, fg_color="#141E28", command=lambda: do_microsoft_login(self))
+            self.mc_login_button = ctk.CTkButton(self, width=150, height=45, text="Login", font=self.custom_font, fg_color="#141E28", command=lambda: do_microsoft_login(self, True))
+            self.mc_login_button.place(x=125, y=450)
+
+        if not path.isfile(mc_user_folder + "\\login_true.txt"):
+            self.mc_login_button = ctk.CTkButton(self, width=150, height=45, text="Login", font=self.custom_font, fg_color="#141E28", command=lambda: do_microsoft_login(self, False))
             self.mc_login_button.place(x=125, y=450)
 
 
